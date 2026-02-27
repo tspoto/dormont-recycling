@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Is It Recycling Week In Dormont?</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy: #1a2e4a;
+      --link: #1a56a0;
+      --yes:  #1a6b3a;
+      --no:   #1a2e4a;
+      --muted:#666;
+      --rule: #ddd;
+    }
+
+    body {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 16px;
+      line-height: 1.5;
+      color: #111;
+      background: #fff;
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 2.5rem 1.25rem 4rem;
+    }
+
+    .masthead {
+      border-bottom: 2px solid var(--navy);
+      padding-bottom: 0.75rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .masthead h1 {
+      font-size: 1.05rem;
+      font-weight: bold;
+      color: var(--navy);
+      letter-spacing: 0.01em;
+    }
+
+    .masthead p {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-family: 'Courier New', monospace;
+      margin-top: 0.15rem;
+    }
+
+    .search-label {
+      display: block;
+      font-size: 0.85rem;
+      margin-bottom: 0.35rem;
+      color: #333;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 0.4rem;
+      align-items: stretch;
+    }
+
+    .ac-wrap { position: relative; flex: 1; }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 0.45rem 0.6rem;
+      font-family: Georgia, serif;
+      font-size: 0.95rem;
+      border: 1px solid #aaa;
+      color: #111;
+      background: #fff;
+      outline: none;
+      height: 100%;
+    }
+
+    input[type="text"]:focus { border-color: var(--navy); }
+
+    button {
+      padding: 0.45rem 0.9rem;
+      font-family: Georgia, serif;
+      font-size: 0.88rem;
+      background: var(--navy);
+      color: #fff;
+      border: 1px solid var(--navy);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    button:hover { background: #0f1e30; }
+
+    .dropdown {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0; right: 0;
+      background: #fff;
+      border: 1px solid #aaa;
+      border-top: none;
+      z-index: 100;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .dropdown-item {
+      padding: 0.4rem 0.6rem;
+      font-size: 0.88rem;
+      cursor: pointer;
+      border-bottom: 1px solid #eee;
+    }
+
+    .dropdown-item:last-child { border-bottom: none; }
+    .dropdown-item:hover, .dropdown-item.focused { background: #f0f4ff; }
+
+    #answer { display: none; margin-top: 2rem; }
+
+    .big-answer {
+      font-size: 3rem;
+      font-weight: bold;
+      line-height: 1.1;
+      margin-bottom: 0.25rem;
+    }
+
+    .big-answer.yes { color: var(--yes); }
+    .big-answer.no  { color: var(--no);  }
+
+    .answer-sub {
+      font-size: 0.95rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .details {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .details td {
+      padding: 0.35rem 0;
+      border-bottom: 1px solid var(--rule);
+      vertical-align: top;
+    }
+
+    .details td:first-child {
+      color: var(--muted);
+      width: 38%;
+      font-size: 0.8rem;
+      padding-right: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding-top: 0.4rem;
+    }
+
+    .details tr:last-child td { border-bottom: none; }
+
+    h2 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      border-top: 1px solid var(--rule);
+      padding-top: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .schedule-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.88rem;
+      padding: 0.3rem 0;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .schedule-row:last-child { border-bottom: none; }
+    .schedule-row .sdate { color: #333; }
+
+    .schedule-row .stype {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: bold;
+    }
+
+    .stype.rec  { color: var(--yes); }
+    .stype.tra  { color: var(--muted); }
+
+    .stag {
+      font-family: 'Courier New', monospace;
+      font-size: 0.7rem;
+      background: #f0f0f0;
+      padding: 0.05rem 0.35rem;
+      color: #555;
+      margin-left: 0.4rem;
+    }
+
+    .stag.today-tag { background: var(--navy); color: #fff; }
+
+    .notice {
+      font-size: 0.83rem;
+      border-left: 3px solid #c8a000;
+      padding: 0.5rem 0.75rem;
+      background: #fffce8;
+      color: #555;
+      margin-bottom: 1.25rem;
+    }
+
+    #not-found {
+      display: none;
+      margin-top: 1.25rem;
+      font-size: 0.88rem;
+      color: #900;
+    }
+
+    footer {
+      margin-top: 3rem;
+      border-top: 1px solid var(--rule);
+      padding-top: 1rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    footer a, a { color: var(--link); }
+  </style>
+</head>
+<body>
+
+<div class="masthead">
+  <h1>Is It Recycling Week In Dormont?</h1>
+  <p>Borough of Dormont · Allegheny County, PA</p>
+</div>
+
+<label class="search-label" for="streetInput">Enter your street name:</label>
+<div class="search-row">
+  <div class="ac-wrap">
+    <input type="text" id="streetInput" placeholder="e.g. Hillsdale, Broadway…" autocomplete="off">
+    <div class="dropdown" id="dropdown"></div>
+  </div>
+  <button onclick="checkStreet()">Look up</button>
+</div>
+
+<div id="not-found">Street not found. Try a partial name — e.g. "Hillsdale" instead of "Hillsdale Ave".</div>
+
+<div id="answer">
+  <div class="big-answer" id="bigAnswer"></div>
+  <div class="answer-sub" id="answerSub"></div>
+  <div class="notice" id="holidayNotice" style="display:none"></div>
+  <table class="details"><tbody id="detailsBody"></tbody></table>
+  <h2>Upcoming collections</h2>
+  <div id="scheduleRows"></div>
+</div>
+
+<footer>
+  Data: <a href="https://boro.dormont.pa.us/2024-2028-garbage-recycling/" target="_blank">Borough of Dormont</a>.
+  Verify against the <a href="https://boro.dormont.pa.us/wp-content/uploads/2025/12/2026-Garbage-and-Recycling-Calendar.png" target="_blank">official 2026 calendar</a>.<br>
+  Bulk pickup: first full week of each month (up to 2 items). Missed pickup: <a href="tel:18008664460">1-800-866-4460</a>.
+</footer>
+
+<script>
+// ── Data ──────────────────────────────────────
+// To update: edit streets.json and schedule-YYYY.json, then paste the
+// contents of each into the arrays/object below.
+
+const streets = [
+  { "name": "16th Alley", "day": "Thursday" },
+  { "name": "Alabama Ave", "day": "Wednesday" },
+  { "name": "Albern Ave", "day": "Tuesday" },
+  { "name": "Annapolis Ave", "day": "Wednesday" },
+  { "name": "Annex Ave (3026)", "day": "Monday" },
+  { "name": "Arkansas Ave", "day": "Monday" },
+  { "name": "Beaconhill Ave", "day": "Tuesday" },
+  { "name": "Belrose Ave", "day": "Friday" },
+  { "name": "Biltmore Ave", "day": "Tuesday" },
+  { "name": "Broadway Ave", "day": "Friday" },
+  { "name": "Celeron Ave", "day": "Tuesday" },
+  { "name": "Connecticut Ave", "day": "Thursday" },
+  { "name": "Crosby Ave", "day": "Thursday" },
+  { "name": "Dell Ave (3275)", "day": "Wednesday" },
+  { "name": "Delwood Ave", "day": "Tuesday" },
+  { "name": "Dormont Ave (1100-1312)", "day": "Tuesday" },
+  { "name": "Dormont Ave (1415-1694)", "day": "Wednesday" },
+  { "name": "Dwight Ave (2722-2947)", "day": "Thursday" },
+  { "name": "Dwight Ave (3000-3077)", "day": "Wednesday" },
+  { "name": "Earlsmere Ave", "day": "Wednesday" },
+  { "name": "Eastmont Ave", "day": "Tuesday" },
+  { "name": "Edgehill Ave", "day": "Friday" },
+  { "name": "Espy Ave", "day": "Friday" },
+  { "name": "Gaylord Ave", "day": "Tuesday" },
+  { "name": "Glenmore Ave", "day": "Friday" },
+  { "name": "Grandin Ave", "day": "Wednesday" },
+  { "name": "Grassmere Ave", "day": "Wednesday" },
+  { "name": "Greenmount Ave", "day": "Wednesday" },
+  { "name": "Hillsdale Ave (1104-1325)", "day": "Monday" },
+  { "name": "Hillsdale Ave (1403-1814)", "day": "Thursday" },
+  { "name": "Hillsdale Ave (1424)", "day": "Friday" },
+  { "name": "Illinois Ave", "day": "Monday" },
+  { "name": "Kelton Ave (1035-1095)", "day": "Tuesday" },
+  { "name": "Kelton Ave (1106-1316)", "day": "Monday" },
+  { "name": "Kelton Ave (1418-1696)", "day": "Wednesday" },
+  { "name": "Key Ave", "day": "Friday" },
+  { "name": "LaSalle Ave (1417-1514)", "day": "Friday" },
+  { "name": "LaSalle Ave (1636-1644)", "day": "Thursday" },
+  { "name": "Latonia Ave", "day": "Tuesday" },
+  { "name": "Louisiana Ave", "day": "Thursday" },
+  { "name": "Madison Way", "day": "Wednesday" },
+  { "name": "Mattern Ave", "day": "Thursday" },
+  { "name": "McFarland Rd", "day": "Wednesday" },
+  { "name": "McNeilly Ave", "day": "Monday" },
+  { "name": "Memorial Dr", "day": "Wednesday" },
+  { "name": "Mervin Ave", "day": "Wednesday" },
+  { "name": "Miles Ave", "day": "Friday" },
+  { "name": "Mississippi Ave", "day": "Monday" },
+  { "name": "Montpelier Ave", "day": "Thursday" },
+  { "name": "New Haven Ave", "day": "Thursday" },
+  { "name": "Oklahoma Ave", "day": "Tuesday" },
+  { "name": "Ordinance Ave", "day": "Thursday" },
+  { "name": "Park Blvd", "day": "Wednesday" },
+  { "name": "Parkside Ave", "day": "Tuesday" },
+  { "name": "Peermont Ave", "day": "Tuesday" },
+  { "name": "Philadelphia Ave", "day": "Thursday" },
+  { "name": "Piedmont Ave", "day": "Tuesday" },
+  { "name": "Pinehurst Ave", "day": "Tuesday" },
+  { "name": "Pioneer Ave", "day": "Monday" },
+  { "name": "Potomac Ave", "day": "Thursday" },
+  { "name": "Ranger Way", "day": "Wednesday" },
+  { "name": "Tennessee Ave", "day": "Monday" },
+  { "name": "Texas Ave (3021-3033)", "day": "Monday" },
+  { "name": "Texas Ave (3040-3091)", "day": "Tuesday" },
+  { "name": "Tolma Ave", "day": "Wednesday" },
+  { "name": "Voelkel Ave", "day": "Thursday" },
+  { "name": "Wainbell Ave", "day": "Tuesday" },
+  { "name": "Waltham Ave", "day": "Tuesday" },
+  { "name": "Wenzell Ave", "day": "Friday" },
+  { "name": "West Liberty Ave", "day": "Tuesday" },
+  { "name": "West Liberty Ave (2942-2988)", "day": "Friday" },
+  { "name": "Windermere Ave", "day": "Wednesday" },
+  { "name": "Wisconsin Ave", "day": "Monday" }
+];
+
+const schedule = {
+  "year": 2026,
+  "recyclingWeekStarts": [
+    "2026-01-12","2026-01-26","2026-02-09","2026-02-23",
+    "2026-03-09","2026-03-23","2026-04-06","2026-04-20",
+    "2026-05-04","2026-05-18","2026-06-01","2026-06-15",
+    "2026-06-29","2026-07-13","2026-07-27","2026-08-10",
+    "2026-08-24","2026-09-07","2026-09-21","2026-10-05",
+    "2026-10-19","2026-11-02","2026-11-16","2026-11-30",
+    "2026-12-14","2026-12-28"
+  ],
+  "holidays": [
+    { "date": "2026-01-01", "name": "New Year's Day" },
+    { "date": "2026-05-25", "name": "Memorial Day" },
+    { "date": "2026-09-07", "name": "Labor Day" },
+    { "date": "2026-11-26", "name": "Thanksgiving Day" },
+    { "date": "2026-12-25", "name": "Christmas Day" }
+  ]
+};
+
+// ── Date helpers ──────────────────────────────
+const DAY = { Monday:0, Tuesday:1, Wednesday:2, Thursday:3, Friday:4 };
+
+function localDate(str) {
+  const [y,m,d] = str.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+
+function monday(d) {
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  const m = new Date(d); m.setDate(d.getDate() + diff); m.setHours(0,0,0,0);
+  return m;
+}
+
+function recycleMondays() {
+  return schedule.recyclingWeekStarts.map(localDate);
+}
+
+function isRecycle(mon) {
+  return recycleMondays().some(d => d.getTime() === mon.getTime());
+}
+
+function holidayDelay(mon, day) {
+  for (const h of schedule.holidays) {
+    const hd = localDate(h.date);
+    if (monday(hd).getTime() !== mon.getTime()) continue;
+    const dow = hd.getDay();
+    if (!dow || dow === 6) continue;
+    if ((dow - 1) <= DAY[day]) return h;
+  }
+  return null;
+}
+
+function pickupDate(mon, day, delayed) {
+  const d = new Date(mon);
+  d.setDate(d.getDate() + DAY[day] + (delayed ? 1 : 0));
+  return d;
+}
+
+function fmt(d, opts) {
+  return d.toLocaleDateString('en-US', opts || { weekday:'short', month:'short', day:'numeric' });
+}
+
+function fmtLong(d) {
+  return d.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+}
+
+// ── Autocomplete ──────────────────────────────
+const inp  = document.getElementById('streetInput');
+const drop = document.getElementById('dropdown');
+let fi = -1;
+
+inp.addEventListener('input', function() {
+  fi = -1; drop.innerHTML = '';
+  const v = this.value.trim().toLowerCase();
+  if (v.length < 2) { drop.style.display = 'none'; return; }
+  const hits = streets.filter(s => s.name.toLowerCase().includes(v)).slice(0, 10);
+  if (!hits.length) { drop.style.display = 'none'; return; }
+  hits.forEach(s => {
+    const el = document.createElement('div');
+    el.className = 'dropdown-item';
+    el.textContent = s.name;
+    el.addEventListener('mousedown', e => {
+      e.preventDefault();
+      inp.value = s.name;
+      drop.style.display = 'none';
+      checkStreet();
+    });
+    drop.appendChild(el);
+  });
+  drop.style.display = 'block';
+});
+
+inp.addEventListener('keydown', function(e) {
+  const items = drop.querySelectorAll('.dropdown-item');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    fi = Math.min(fi+1, items.length-1);
+    items.forEach((el,i) => el.classList.toggle('focused', i===fi));
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    fi = Math.max(fi-1, 0);
+    items.forEach((el,i) => el.classList.toggle('focused', i===fi));
+  } else if (e.key === 'Enter') {
+    if (fi >= 0 && items[fi]) inp.value = items[fi].textContent;
+    drop.style.display = 'none';
+    checkStreet();
+  } else if (e.key === 'Escape') {
+    drop.style.display = 'none';
+  }
+});
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.ac-wrap')) drop.style.display = 'none';
+});
+
+// ── Main ──────────────────────────────────────
+function checkStreet() {
+  drop.style.display = 'none';
+  const v = inp.value.trim().toLowerCase();
+  const norm = s => s.toLowerCase().replace(/\s+(ave|blvd|rd|dr|way|st\.?)$/i,'').trim();
+  const match =
+    streets.find(s => s.name.toLowerCase() === v) ||
+    streets.find(s => norm(s.name) === norm(inp.value)) ||
+    streets.find(s => s.name.toLowerCase().includes(v));
+
+  document.getElementById('not-found').style.display = 'none';
+  document.getElementById('answer').style.display    = 'none';
+
+  if (!match) { document.getElementById('not-found').style.display = 'block'; return; }
+
+  const today   = new Date(); today.setHours(0,0,0,0);
+  const mon     = monday(today);
+  const rec     = isRecycle(mon);
+  const hol     = holidayDelay(mon, match.day);
+  const pdate   = pickupDate(mon, match.day, !!hol);
+  const past    = pdate < today;
+  const isToday = pdate.getTime() === today.getTime();
+
+  const big = document.getElementById('bigAnswer');
+  const sub = document.getElementById('answerSub');
+
+  big.className = 'big-answer ' + (rec ? 'yes' : 'no');
+  const effectiveYes = rec; // for detail row below
+
+  if (rec) {
+    big.textContent = isToday ? 'Yes — today.' : 'Yes.';
+    sub.textContent = isToday
+      ? `Put your blue recycling cart out now. (${match.name}, ${match.day})`
+      : past
+      ? `Yes — recycling week. ${match.name} pickup was ${fmtLong(pdate)}.`
+      : `Recycling pickup for ${match.name} is ${fmtLong(pdate)}.${hol ? ' See delay notice below.' : ''}`;
+  } else {
+    big.textContent = 'No.';
+    sub.textContent = `Trash only this week. ${match.name} (${match.day}). Recycling is every other week.`;
+  }
+
+  const hn = document.getElementById('holidayNotice');
+  if (hol) {
+    hn.style.display = 'block';
+    hn.textContent = `Holiday delay: ${hol.name} falls this week. ${match.day} collection shifts to ${fmtLong(pdate)}.`;
+  } else {
+    hn.style.display = 'none';
+  }
+
+  const nextRec = (() => {
+    for (const rw of recycleMondays()) {
+      const h2 = holidayDelay(rw, match.day);
+      const pd = pickupDate(rw, match.day, !!h2);
+      if (pd > today) return fmt(pd);  // strictly future — skips today and past
+    }
+    return '—';
+  })();
+
+  document.getElementById('detailsBody').innerHTML = `
+    <tr><td>Street</td><td>${match.name}</td></tr>
+    <tr><td>Collection day</td><td>${match.day}</td></tr>
+    <tr><td>This week's pickup</td><td>${fmt(pdate)}${hol ? ' <span class="stag">+1 holiday</span>' : ''}${isToday ? ' <span class="stag today-tag">today</span>' : past ? ' <span class="stag">collected</span>' : ''}</td></tr>
+    <tr><td>Next recycling</td><td>${rec && !past ? fmt(pdate) + ' <span class="stag today-tag">this week</span>' : nextRec}</td></tr>
+  `;
+
+  const rows = document.getElementById('scheduleRows');
+  rows.innerHTML = '';
+  let count = 0, scanMon = new Date(mon);
+
+  while (count < 8 && scanMon.getFullYear() <= schedule.year) {
+    const r  = isRecycle(scanMon);
+    const h2 = holidayDelay(scanMon, match.day);
+    const pd = pickupDate(scanMon, match.day, !!h2);
+    const isTodayRow = pd.getTime() === today.getTime();
+    const isThisWeek = scanMon.getTime() === mon.getTime();
+
+    if (pd >= today || isThisWeek) {
+      const div = document.createElement('div');
+      div.className = 'schedule-row';
+      let tags = '';
+      if (h2)          tags += `<span class="stag">+1 ${h2.name}</span>`;
+      if (isTodayRow)  tags += `<span class="stag today-tag">today</span>`;
+      else if (isThisWeek) tags += `<span class="stag">this week</span>`;
+
+      div.innerHTML = `
+        <span class="sdate">${fmt(pd, {weekday:'short', month:'short', day:'numeric', year:'numeric'})}${tags}</span>
+        <span class="stype ${r ? 'rec' : 'tra'}">${r ? '♻ recycle + trash' : 'trash only'}</span>`;
+      rows.appendChild(div);
+      count++;
+    }
+    scanMon.setDate(scanMon.getDate() + 7);
+  }
+
+  document.getElementById('answer').style.display = 'block';
+}
+</script>
+</body>
+</html>
