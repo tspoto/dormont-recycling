@@ -177,7 +177,7 @@
     .schedule-row:last-child { border-bottom: none; }
     .schedule-row .sdate { color: #333; }
 
-    .schedule-row .stype {
+    .stype {
       font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.04em;
@@ -186,6 +186,7 @@
 
     .stype.rec  { color: var(--yes); }
     .stype.tra  { color: var(--muted); }
+    .stype.yard { color: #7a5200; }
 
     .stag {
       font-family: 'Courier New', monospace;
@@ -242,6 +243,8 @@
   <button onclick="checkStreet()">Look up</button>
 </div>
 
+<div id="load-error" style="display:none;margin-top:1.25rem;font-size:.88rem;color:#900;"></div>
+
 <div id="not-found">Street not found. Try a partial name — e.g. "Hillsdale" instead of "Hillsdale Ave".</div>
 
 <div id="answer">
@@ -260,105 +263,31 @@
 </footer>
 
 <script>
+// ── Testing ───────────────────────────────────
+// To test a specific date, uncomment and set TEST_DATE, then comment it out again before publishing.
+// const TEST_DATE = new Date('2026-05-26'); // e.g. Tuesday of Memorial Day week
+
 // ── Data ──────────────────────────────────────
-// To update: edit streets.json and schedule-YYYY.json, then paste the
-// contents of each into the arrays/object below.
+// Streets live in data/streets.json.
+// Each year, add a new data/schedule-YYYY.json and update the filename below.
+const SCHEDULE_FILE = 'data/schedule-2026.json';
 
-const streets = [
-  { "name": "16th Alley", "day": "Thursday" },
-  { "name": "Alabama Ave", "day": "Wednesday" },
-  { "name": "Albern Ave", "day": "Tuesday" },
-  { "name": "Annapolis Ave", "day": "Wednesday" },
-  { "name": "Annex Ave (3026)", "day": "Monday" },
-  { "name": "Arkansas Ave", "day": "Monday" },
-  { "name": "Beaconhill Ave", "day": "Tuesday" },
-  { "name": "Belrose Ave", "day": "Friday" },
-  { "name": "Biltmore Ave", "day": "Tuesday" },
-  { "name": "Broadway Ave", "day": "Friday" },
-  { "name": "Celeron Ave", "day": "Tuesday" },
-  { "name": "Connecticut Ave", "day": "Thursday" },
-  { "name": "Crosby Ave", "day": "Thursday" },
-  { "name": "Dell Ave (3275)", "day": "Wednesday" },
-  { "name": "Delwood Ave", "day": "Tuesday" },
-  { "name": "Dormont Ave (1100-1312)", "day": "Tuesday" },
-  { "name": "Dormont Ave (1415-1694)", "day": "Wednesday" },
-  { "name": "Dwight Ave (2722-2947)", "day": "Thursday" },
-  { "name": "Dwight Ave (3000-3077)", "day": "Wednesday" },
-  { "name": "Earlsmere Ave", "day": "Wednesday" },
-  { "name": "Eastmont Ave", "day": "Tuesday" },
-  { "name": "Edgehill Ave", "day": "Friday" },
-  { "name": "Espy Ave", "day": "Friday" },
-  { "name": "Gaylord Ave", "day": "Tuesday" },
-  { "name": "Glenmore Ave", "day": "Friday" },
-  { "name": "Grandin Ave", "day": "Wednesday" },
-  { "name": "Grassmere Ave", "day": "Wednesday" },
-  { "name": "Greenmount Ave", "day": "Wednesday" },
-  { "name": "Hillsdale Ave (1104-1325)", "day": "Monday" },
-  { "name": "Hillsdale Ave (1403-1814)", "day": "Thursday" },
-  { "name": "Hillsdale Ave (1424)", "day": "Friday" },
-  { "name": "Illinois Ave", "day": "Monday" },
-  { "name": "Kelton Ave (1035-1095)", "day": "Tuesday" },
-  { "name": "Kelton Ave (1106-1316)", "day": "Monday" },
-  { "name": "Kelton Ave (1418-1696)", "day": "Wednesday" },
-  { "name": "Key Ave", "day": "Friday" },
-  { "name": "LaSalle Ave (1417-1514)", "day": "Friday" },
-  { "name": "LaSalle Ave (1636-1644)", "day": "Thursday" },
-  { "name": "Latonia Ave", "day": "Tuesday" },
-  { "name": "Louisiana Ave", "day": "Thursday" },
-  { "name": "Madison Way", "day": "Wednesday" },
-  { "name": "Mattern Ave", "day": "Thursday" },
-  { "name": "McFarland Rd", "day": "Wednesday" },
-  { "name": "McNeilly Ave", "day": "Monday" },
-  { "name": "Memorial Dr", "day": "Wednesday" },
-  { "name": "Mervin Ave", "day": "Wednesday" },
-  { "name": "Miles Ave", "day": "Friday" },
-  { "name": "Mississippi Ave", "day": "Monday" },
-  { "name": "Montpelier Ave", "day": "Thursday" },
-  { "name": "New Haven Ave", "day": "Thursday" },
-  { "name": "Oklahoma Ave", "day": "Tuesday" },
-  { "name": "Ordinance Ave", "day": "Thursday" },
-  { "name": "Park Blvd", "day": "Wednesday" },
-  { "name": "Parkside Ave", "day": "Tuesday" },
-  { "name": "Peermont Ave", "day": "Tuesday" },
-  { "name": "Philadelphia Ave", "day": "Thursday" },
-  { "name": "Piedmont Ave", "day": "Tuesday" },
-  { "name": "Pinehurst Ave", "day": "Tuesday" },
-  { "name": "Pioneer Ave", "day": "Monday" },
-  { "name": "Potomac Ave", "day": "Thursday" },
-  { "name": "Ranger Way", "day": "Wednesday" },
-  { "name": "Tennessee Ave", "day": "Monday" },
-  { "name": "Texas Ave (3021-3033)", "day": "Monday" },
-  { "name": "Texas Ave (3040-3091)", "day": "Tuesday" },
-  { "name": "Tolma Ave", "day": "Wednesday" },
-  { "name": "Voelkel Ave", "day": "Thursday" },
-  { "name": "Wainbell Ave", "day": "Tuesday" },
-  { "name": "Waltham Ave", "day": "Tuesday" },
-  { "name": "Wenzell Ave", "day": "Friday" },
-  { "name": "West Liberty Ave", "day": "Tuesday" },
-  { "name": "West Liberty Ave (2942-2988)", "day": "Friday" },
-  { "name": "Windermere Ave", "day": "Wednesday" },
-  { "name": "Wisconsin Ave", "day": "Monday" }
-];
+let streets  = [];
+let schedule = {};
 
-const schedule = {
-  "year": 2026,
-  "recyclingWeekStarts": [
-    "2026-01-12","2026-01-26","2026-02-09","2026-02-23",
-    "2026-03-09","2026-03-23","2026-04-06","2026-04-20",
-    "2026-05-04","2026-05-18","2026-06-01","2026-06-15",
-    "2026-06-29","2026-07-13","2026-07-27","2026-08-10",
-    "2026-08-24","2026-09-07","2026-09-21","2026-10-05",
-    "2026-10-19","2026-11-02","2026-11-16","2026-11-30",
-    "2026-12-14","2026-12-28"
-  ],
-  "holidays": [
-    { "date": "2026-01-01", "name": "New Year's Day" },
-    { "date": "2026-05-25", "name": "Memorial Day" },
-    { "date": "2026-09-07", "name": "Labor Day" },
-    { "date": "2026-11-26", "name": "Thanksgiving Day" },
-    { "date": "2026-12-25", "name": "Christmas Day" }
-  ]
-};
+async function loadData() {
+  try {
+    [streets, schedule] = await Promise.all([
+      fetch('data/streets.json').then(r => { if (!r.ok) throw r; return r.json(); }),
+      fetch(SCHEDULE_FILE).then(r => { if (!r.ok) throw r; return r.json(); })
+    ]);
+    init();
+  } catch (e) {
+    const el = document.getElementById('load-error');
+    el.textContent = e.toString();
+    el.style.display = 'block';
+  }
+}
 
 // ── Date helpers ──────────────────────────────
 const DAY = { Monday:0, Tuesday:1, Wednesday:2, Thursday:3, Friday:4 };
@@ -381,6 +310,14 @@ function recycleMondays() {
 
 function isRecycle(mon) {
   return recycleMondays().some(d => d.getTime() === mon.getTime());
+}
+
+function yardWasteMondays() {
+  return (schedule.yardWasteWeekStarts || []).map(localDate);
+}
+
+function isYardWaste(mon) {
+  return yardWasteMondays().some(d => d.getTime() === mon.getTime());
 }
 
 function holidayDelay(mon, day) {
@@ -408,12 +345,13 @@ function fmtLong(d) {
   return d.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
 }
 
-// ── Autocomplete ──────────────────────────────
+// ── Autocomplete & events (runs after data loads) ──
 const inp  = document.getElementById('streetInput');
 const drop = document.getElementById('dropdown');
 let fi = -1;
 
-inp.addEventListener('input', function() {
+function init() {
+  inp.addEventListener('input', function() {
   fi = -1; drop.innerHTML = '';
   const v = this.value.trim().toLowerCase();
   if (v.length < 2) { drop.style.display = 'none'; return; }
@@ -457,6 +395,8 @@ document.addEventListener('click', e => {
   if (!e.target.closest('.ac-wrap')) drop.style.display = 'none';
 });
 
+} // end init()
+
 // ── Main ──────────────────────────────────────
 function checkStreet() {
   drop.style.display = 'none';
@@ -472,9 +412,11 @@ function checkStreet() {
 
   if (!match) { document.getElementById('not-found').style.display = 'block'; return; }
 
-  const today   = new Date(); today.setHours(0,0,0,0);
+  const today   = typeof TEST_DATE !== 'undefined' ? new Date(TEST_DATE) : new Date();
+  today.setHours(0,0,0,0);
   const mon     = monday(today);
   const rec     = isRecycle(mon);
+  const yw      = isYardWaste(mon);
   const hol     = holidayDelay(mon, match.day);
   const pdate   = pickupDate(mon, match.day, !!hol);
   const past    = pdate < today;
@@ -484,24 +426,24 @@ function checkStreet() {
   const sub = document.getElementById('answerSub');
 
   big.className = 'big-answer ' + (rec ? 'yes' : 'no');
-  const effectiveYes = rec; // for detail row below
 
   if (rec) {
-    big.textContent = isToday ? 'Yes — today.' : 'Yes.';
+    big.textContent = isToday ? 'Yes, today.' : 'Yes.';
     sub.textContent = isToday
       ? `Put your blue recycling cart out now. (${match.name}, ${match.day})`
       : past
-      ? `Yes — recycling week. ${match.name} pickup was ${fmtLong(pdate)}.`
-      : `Recycling pickup for ${match.name} is ${fmtLong(pdate)}.${hol ? ' See delay notice below.' : ''}`;
+      ? `Yes, it is recycling week. ${match.name} pickup was ${fmtLong(pdate)}.`
+      : `Yes, it is recycling week. ${match.name} pickup is ${fmtLong(pdate)}.${hol ? ' See delay notice below.' : ''}`;
   } else {
     big.textContent = 'No.';
-    sub.textContent = `Trash only this week. ${match.name} (${match.day}). Recycling is every other week.`;
+    sub.textContent = `No, it is not recycling week. ${match.name} (${match.day}) has trash only. Recycling is every other week.`;
   }
 
   const hn = document.getElementById('holidayNotice');
   if (hol) {
     hn.style.display = 'block';
-    hn.textContent = `Holiday delay: ${hol.name} falls this week. ${match.day} collection shifts to ${fmtLong(pdate)}.`;
+    const isSaturday = pdate.getDay() === 6;
+    hn.textContent = `Holiday delay: ${hol.name} falls this week. ${match.day} collection shifts to ${fmtLong(pdate)}.${isSaturday ? ' Note: this is a Saturday collection due to the holiday delay.' : ''}`;
   } else {
     hn.style.display = 'none';
   }
@@ -510,15 +452,16 @@ function checkStreet() {
     for (const rw of recycleMondays()) {
       const h2 = holidayDelay(rw, match.day);
       const pd = pickupDate(rw, match.day, !!h2);
-      if (pd > today) return fmt(pd);  // strictly future — skips today and past
+      if (pd > today) return fmt(pd);
     }
-    return '—';
+    return 'none found';
   })();
 
   document.getElementById('detailsBody').innerHTML = `
     <tr><td>Street</td><td>${match.name}</td></tr>
     <tr><td>Collection day</td><td>${match.day}</td></tr>
-    <tr><td>This week's pickup</td><td>${fmt(pdate)}${hol ? ' <span class="stag">+1 holiday</span>' : ''}${isToday ? ' <span class="stag today-tag">today</span>' : past ? ' <span class="stag">collected</span>' : ''}</td></tr>
+    <tr><td>This week</td><td><span class="stype ${rec ? 'rec' : yw ? 'yard' : 'tra'}">${rec && yw ? '♻️ recycle + trash, 🍂 yard waste' : rec ? '♻️ recycle + trash' : yw ? '🍂 yard waste + trash' : 'trash only'}</span></td></tr>
+    <tr><td>This week's pickup</td><td>${fmt(pdate)}${hol ? ` <span class="stag">delayed, ${hol.name}</span>` : ''}${isToday ? ' <span class="stag today-tag">today</span>' : past ? ' <span class="stag">collected</span>' : ''}</td></tr>
     <tr><td>Next recycling</td><td>${rec && !past ? fmt(pdate) + ' <span class="stag today-tag">this week</span>' : nextRec}</td></tr>
   `;
 
@@ -528,6 +471,7 @@ function checkStreet() {
 
   while (count < 8 && scanMon.getFullYear() <= schedule.year) {
     const r  = isRecycle(scanMon);
+    const yw = isYardWaste(scanMon);
     const h2 = holidayDelay(scanMon, match.day);
     const pd = pickupDate(scanMon, match.day, !!h2);
     const isTodayRow = pd.getTime() === today.getTime();
@@ -537,13 +481,19 @@ function checkStreet() {
       const div = document.createElement('div');
       div.className = 'schedule-row';
       let tags = '';
-      if (h2)          tags += `<span class="stag">+1 ${h2.name}</span>`;
-      if (isTodayRow)  tags += `<span class="stag today-tag">today</span>`;
+      if (h2)              tags += `<span class="stag">delayed, ${h2.name}</span>`;
+      if (isTodayRow)      tags += `<span class="stag today-tag">today</span>`;
       else if (isThisWeek) tags += `<span class="stag">this week</span>`;
+
+      const typeLabel = r && yw ? '♻️ recycle + trash, 🍂 yard waste'
+                      : r      ? '♻️ recycle + trash'
+                      : yw     ? '🍂 yard waste + trash'
+                               : 'trash only';
+      const typeClass = r ? 'rec' : yw ? 'yard' : 'tra';
 
       div.innerHTML = `
         <span class="sdate">${fmt(pd, {weekday:'short', month:'short', day:'numeric', year:'numeric'})}${tags}</span>
-        <span class="stype ${r ? 'rec' : 'tra'}">${r ? '♻ recycle + trash' : 'trash only'}</span>`;
+        <span class="stype ${typeClass}">${typeLabel}</span>`;
       rows.appendChild(div);
       count++;
     }
@@ -552,6 +502,8 @@ function checkStreet() {
 
   document.getElementById('answer').style.display = 'block';
 }
+
+loadData();
 </script>
 </body>
 </html>
