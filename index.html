@@ -300,7 +300,8 @@ function localDate(str) {
 
 function monday(d) {
   const day = d.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
+  // On Sunday, look ahead to tomorrow (the upcoming week) rather than back 6 days
+  const diff = day === 0 ? 1 : 1 - day;
   const m = new Date(d); m.setDate(d.getDate() + diff); m.setHours(0,0,0,0);
   return m;
 }
@@ -353,48 +354,48 @@ let fi = -1;
 
 function init() {
   inp.addEventListener('input', function() {
-  fi = -1; drop.innerHTML = '';
-  const v = this.value.trim().toLowerCase();
-  if (v.length < 2) { drop.style.display = 'none'; return; }
-  const hits = streets.filter(s => s.name.toLowerCase().includes(v)).slice(0, 10);
-  if (!hits.length) { drop.style.display = 'none'; return; }
-  hits.forEach(s => {
-    const el = document.createElement('div');
-    el.className = 'dropdown-item';
-    el.textContent = s.name;
-    el.addEventListener('mousedown', e => {
+    fi = -1; drop.innerHTML = '';
+    const v = this.value.trim().toLowerCase();
+    if (v.length < 2) { drop.style.display = 'none'; return; }
+    const hits = streets.filter(s => s.name.toLowerCase().includes(v)).slice(0, 10);
+    if (!hits.length) { drop.style.display = 'none'; return; }
+    hits.forEach(s => {
+      const el = document.createElement('div');
+      el.className = 'dropdown-item';
+      el.textContent = s.name;
+      el.addEventListener('mousedown', e => {
+        e.preventDefault();
+        inp.value = s.name;
+        drop.style.display = 'none';
+        checkStreet();
+      });
+      drop.appendChild(el);
+    });
+    drop.style.display = 'block';
+  });
+
+  inp.addEventListener('keydown', function(e) {
+    const items = drop.querySelectorAll('.dropdown-item');
+    if (e.key === 'ArrowDown') {
       e.preventDefault();
-      inp.value = s.name;
+      fi = Math.min(fi+1, items.length-1);
+      items.forEach((el,i) => el.classList.toggle('focused', i===fi));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      fi = Math.max(fi-1, 0);
+      items.forEach((el,i) => el.classList.toggle('focused', i===fi));
+    } else if (e.key === 'Enter') {
+      if (fi >= 0 && items[fi]) inp.value = items[fi].textContent;
       drop.style.display = 'none';
       checkStreet();
-    });
-    drop.appendChild(el);
+    } else if (e.key === 'Escape') {
+      drop.style.display = 'none';
+    }
   });
-  drop.style.display = 'block';
-});
 
-inp.addEventListener('keydown', function(e) {
-  const items = drop.querySelectorAll('.dropdown-item');
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    fi = Math.min(fi+1, items.length-1);
-    items.forEach((el,i) => el.classList.toggle('focused', i===fi));
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    fi = Math.max(fi-1, 0);
-    items.forEach((el,i) => el.classList.toggle('focused', i===fi));
-  } else if (e.key === 'Enter') {
-    if (fi >= 0 && items[fi]) inp.value = items[fi].textContent;
-    drop.style.display = 'none';
-    checkStreet();
-  } else if (e.key === 'Escape') {
-    drop.style.display = 'none';
-  }
-});
-
-document.addEventListener('click', e => {
-  if (!e.target.closest('.ac-wrap')) drop.style.display = 'none';
-});
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.ac-wrap')) drop.style.display = 'none';
+  });
 
 } // end init()
 
